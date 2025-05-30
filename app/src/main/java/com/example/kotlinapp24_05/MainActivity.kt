@@ -3,26 +3,66 @@ package com.example.kotlinapp24_05
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.outlined.FitnessCenter
 import androidx.compose.material.icons.outlined.Repeat
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CenterAlignedTopAppBar
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.FloatingActionButtonDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.ListItem
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Shapes
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.TextFieldDefaults
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.Typography
+import androidx.compose.material3.darkColorScheme
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.TextStyle
@@ -36,9 +76,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import java.util.*
-
-// ================== MODELO E VIEWMODEL ==================
+import java.util.UUID
 
 data class Treino(
     val id: String = UUID.randomUUID().toString(),
@@ -67,8 +105,6 @@ class TreinoViewModel : ViewModel() {
     fun buscarPorId(id: String): Treino? = listaTreinos.find { it.id == id }
 }
 
-// ================== COMPONENTES VISUAIS ==================
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SwipeableTreinoCard(
@@ -81,34 +117,44 @@ fun SwipeableTreinoCard(
             .fillMaxWidth()
             .padding(horizontal = 8.dp, vertical = 4.dp),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant
-        )
+            containerColor = MaterialTheme.colorScheme.surface,
+            contentColor = MaterialTheme.colorScheme.onSurface
+        ),
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline)
     ) {
         ListItem(
             headlineContent = {
                 Text(
                     treino.nome,
-                    style = MaterialTheme.typography.titleLarge
+                    style = MaterialTheme.typography.titleLarge.copy(
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.primary
+                    )
                 )
             },
             supportingContent = {
                 Text(
                     "Repetições: ${treino.repeticoes}",
-                    style = MaterialTheme.typography.bodyMedium
+                    style = MaterialTheme.typography.bodyMedium.copy(
+                        color = MaterialTheme.colorScheme.secondary
+                    )
                 )
             },
             leadingContent = {
                 Icon(
                     Icons.Outlined.FitnessCenter,
                     contentDescription = null,
-                    modifier = Modifier.size(40.dp))
+                    modifier = Modifier.size(40.dp),
+                    tint = MaterialTheme.colorScheme.primary
+                )
             },
             trailingContent = {
                 Row {
                     IconButton(onClick = onEdit) {
-                        Text(
-                            text = "✏️",
-                            fontSize = 20.sp
+                        Icon(
+                            Icons.Filled.Edit,
+                            contentDescription = "Editar",
+                            tint = MaterialTheme.colorScheme.secondary
                         )
                     }
                     IconButton(onClick = onDelete) {
@@ -137,8 +183,11 @@ fun TelaListaTreinos(
         floatingActionButton = {
             FloatingActionButton(
                 onClick = { navController.navigate("novo") },
-                containerColor = MaterialTheme.colorScheme.primaryContainer,
-                elevation = FloatingActionButtonDefaults.elevation(8.dp)
+                containerColor = MaterialTheme.colorScheme.primary,
+                contentColor = MaterialTheme.colorScheme.onPrimary,
+                elevation = FloatingActionButtonDefaults.elevation(8.dp),
+                modifier = Modifier
+                    .shadow(8.dp, shape = CircleShape, spotColor = MaterialTheme.colorScheme.primary)
             ) {
                 Icon(
                     imageVector = Icons.Filled.Add,
@@ -151,13 +200,14 @@ fun TelaListaTreinos(
                 title = {
                     Text(
                         "📋 Meus Treinos",
-                        style = MaterialTheme.typography.headlineSmall,
-                        color = MaterialTheme.colorScheme.onPrimaryContainer
+                        style = MaterialTheme.typography.displaySmall.copy(
+                            color = MaterialTheme.colorScheme.tertiary
+                        )
                     )
                 },
                 colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.primaryContainer,
-                    titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                    containerColor = Color.Transparent,
+                    titleContentColor = MaterialTheme.colorScheme.tertiary
                 )
             )
         }
@@ -173,18 +223,19 @@ fun TelaListaTreinos(
                     Icon(
                         imageVector = Icons.Outlined.FitnessCenter,
                         contentDescription = null,
-                        modifier = Modifier.size(80.dp)
+                        modifier = Modifier.size(80.dp),
+                        tint = MaterialTheme.colorScheme.tertiary
                     )
                     Spacer(modifier = Modifier.height(16.dp))
                     Text(
                         "Nenhum treino cadastrado",
                         style = MaterialTheme.typography.titleLarge,
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                     Text(
                         "Toque no + para começar!",
                         style = MaterialTheme.typography.bodyLarge,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        color = MaterialTheme.colorScheme.secondary
                     )
                 }
             }
@@ -257,18 +308,24 @@ fun TelaFormularioTreino(
                 title = {
                     Text(
                         if (id == null) "➕ Novo Treino" else "✏️ Editar Treino",
-                        style = MaterialTheme.typography.titleLarge
+                        style = MaterialTheme.typography.displaySmall.copy(
+                            color = MaterialTheme.colorScheme.tertiary
+                        )
                     )
                 },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Voltar")
+                        Icon(
+                            Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = "Voltar",
+                            tint = MaterialTheme.colorScheme.tertiary
+                        )
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.primaryContainer,
-                    titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
-                    navigationIconContentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                    containerColor = Color.Transparent,
+                    titleContentColor = MaterialTheme.colorScheme.tertiary,
+                    navigationIconContentColor = MaterialTheme.colorScheme.tertiary
                 )
             )
         },
@@ -288,11 +345,22 @@ fun TelaFormularioTreino(
                         navController.popBackStack()
                     }
                 },
-                containerColor = MaterialTheme.colorScheme.primary
+                containerColor = Color.Transparent,
+                modifier = Modifier
+                    .clip(CircleShape)
+                    .background(
+                        brush = Brush.horizontalGradient(
+                            colors = listOf(
+                                MaterialTheme.colorScheme.primary,
+                                MaterialTheme.colorScheme.primaryContainer
+                            )
+                        )
+                    )
             ) {
                 Icon(
                     imageVector = Icons.Filled.Check,
-                    contentDescription = "Salvar"
+                    contentDescription = "Salvar",
+                    tint = MaterialTheme.colorScheme.onPrimary
                 )
             }
         }
@@ -366,55 +434,51 @@ fun CampoFormulario(
         OutlinedTextField(
             value = valor,
             onValueChange = aoMudar,
-            leadingIcon = { Icon(icone, contentDescription = null) },
+            leadingIcon = {
+                Icon(
+                    icone,
+                    contentDescription = null,
+                    tint = if (isError) MaterialTheme.colorScheme.error
+                    else MaterialTheme.colorScheme.secondary
+                )
+            },
             modifier = Modifier.fillMaxWidth(),
             shape = MaterialTheme.shapes.large,
             colors = TextFieldDefaults.colors(
-                focusedContainerColor = MaterialTheme.colorScheme.surface,
-                unfocusedContainerColor = MaterialTheme.colorScheme.surface,
+                focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
                 focusedTextColor = MaterialTheme.colorScheme.onSurface,
                 unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
-                focusedIndicatorColor = if (isError) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary,
+                focusedIndicatorColor = if (isError) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.secondary,
                 unfocusedIndicatorColor = if (isError) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.outline,
-                focusedLeadingIconColor = if (isError) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary,
-                unfocusedPlaceholderColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
-                focusedPlaceholderColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
+                focusedLeadingIconColor = if (isError) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.secondary,
+                unfocusedLeadingIconColor = if (isError) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.secondary,
+                unfocusedPlaceholderColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                focusedPlaceholderColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                errorIndicatorColor = MaterialTheme.colorScheme.error,
+                errorLeadingIconColor = MaterialTheme.colorScheme.error
             ),
             placeholder = {
                 Text(
                     placeholder,
                     style = MaterialTheme.typography.bodyLarge.copy(
-                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 )
             },
             singleLine = true,
             isError = isError,
             keyboardOptions = keyboardOptions,
-            // SOLUÇÃO DEFINITIVA: Mostrar placeholder como texto de suporte
             supportingText = {
-                if (valor.isEmpty()) {
+                if (isError) {
                     Text(
-                        text = placeholder,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
-                        style = MaterialTheme.typography.bodyLarge
+                        text = mensagemErro,
+                        color = MaterialTheme.colorScheme.error,
+                        style = MaterialTheme.typography.labelSmall
                     )
                 }
             }
         )
-
-        AnimatedVisibility(
-            visible = isError,
-            enter = fadeIn(),
-            exit = fadeOut()
-        ) {
-            Text(
-                text = mensagemErro,
-                color = MaterialTheme.colorScheme.error,
-                style = MaterialTheme.typography.labelSmall,
-                modifier = Modifier.padding(start = 16.dp)
-            )
-        }
     }
 }
 
@@ -453,27 +517,38 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             MaterialTheme(
-                colorScheme = lightColorScheme(
-                    primary = Color(0xFF006A60),
-                    onPrimary = Color.White,
-                    primaryContainer = Color(0xFF83F0E0),
-                    onPrimaryContainer = Color(0xFF00201C),
-                    secondary = Color(0xFF4A635F),
-                    onSecondary = Color.White,
-                    secondaryContainer = Color(0xFFCCE8E1),
-                    onSecondaryContainer = Color(0xFF05201B),
-                    surface = Color(0xFFF0F4F3),
-                    onSurface = Color(0xFF191C1B),
-                    surfaceVariant = Color(0xFFE8EFEC),
-                    onSurfaceVariant = Color(0xFF3F4946),
-                    error = Color(0xFFBA1A1A),
-                    errorContainer = Color(0xFFFFDAD6)
+                colorScheme = darkColorScheme(
+                    primary = Color(0xFFFF6B35),
+                    onPrimary = Color(0xFF121212),
+                    primaryContainer = Color(0xFFD85E2D),
+
+                    secondary = Color(0xFF00C49A),
+                    onSecondary = Color(0xFF000000),
+                    secondaryContainer = Color(0xFF008C6D),
+
+                    tertiary = Color(0xFFFFD166),
+                    onTertiary = Color(0xFF000000),
+
+                    background = Color(0xFF121212),
+                    onBackground = Color(0xFFFFFFFF),
+
+                    surface = Color(0xFF1E1E1E),
+                    onSurface = Color(0xFFFFFFFF),
+                    surfaceVariant = Color(0xFF2A2A2A),
+                    onSurfaceVariant = Color(0xFFA0A0A0),
+
+                    error = Color(0xFFFF4B4B),
+                    onError = Color(0xFFFFFFFF),
+
+                    outline = Color(0xFF404040),
+                    outlineVariant = Color(0xFF00C49A)
                 ),
                 typography = Typography(
                     displaySmall = TextStyle(
                         fontWeight = FontWeight.Bold,
                         fontSize = 24.sp,
-                        letterSpacing = 0.5.sp
+                        letterSpacing = 0.5.sp,
+                        color = Color(0xFFFFD166)
                     ),
                     headlineSmall = TextStyle(
                         fontWeight = FontWeight.SemiBold,
@@ -485,7 +560,8 @@ class MainActivity : ComponentActivity() {
                     ),
                     bodyLarge = TextStyle(
                         fontSize = 16.sp,
-                        lineHeight = 24.sp
+                        lineHeight = 24.sp,
+                        color = Color(0xFFA0A0A0)
                     )
                 ),
                 shapes = Shapes(
@@ -498,7 +574,7 @@ class MainActivity : ComponentActivity() {
             ) {
                 Surface(
                     modifier = Modifier.fillMaxSize(),
-                    color = MaterialTheme.colorScheme.surface
+                    color = MaterialTheme.colorScheme.background
                 ) {
                     NavegacaoApp()
                 }
